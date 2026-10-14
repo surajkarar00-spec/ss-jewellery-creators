@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SS Jewellery Creators — 3D Jewellery Models</title>
+  <meta name="description" content="Explore 3D jewellery models including rings, necklaces, earrings, pendants, and bracelets. Preview and browse digital design assets from SS Jewellery Creators." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Three.js for 3D viewer -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous" defer></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ NAVIGATION ═══════════════════════════════ -->
+<nav class="navbar" id="navbar" role="navigation" aria-label="Main navigation">
+  <div class="container nav-inner">
+
+    <!-- Logo -->
+    <a href="#" class="nav-logo" aria-label="SS Jewellery Creators home">
+      <div class="nav-logo-mark" aria-hidden="true">SS</div>
+      <div class="nav-logo-text">
+        SS Jewellery Creators
+        <span>3D Jewellery Models</span>
+      </div>
+    </a>
+
+    <!-- Search -->
+    <div class="nav-search-wrap" role="search">
+      <svg class="nav-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="search" class="nav-search" id="nav-search" placeholder="Search rings, necklaces, earrings…" autocomplete="off" aria-label="Search jewellery models" aria-autocomplete="list" aria-controls="search-autocomplete" />
+      <div class="search-autocomplete" id="search-autocomplete" role="listbox" aria-label="Search suggestions"></div>
+    </div>
+
+    <!-- Nav Links -->
+    <ul class="nav-links" role="list">
+      <li><button class="nav-link active" data-cat="all">Browse models</button></li>
+      <li><button class="nav-link" data-cat="jewellery">Jewellery</button></li>
+      <li><button class="nav-link" id="nav-creators-btn">Sell a model</button></li>
+      <li><a href="#founder-contact-section" class="nav-link" id="nav-contact-btn">Contact</a></li>
+    </ul>
+
+    <!-- Actions -->
+    <div class="nav-actions">
+      <!-- Currency -->
+      <select class="currency-select" id="currency-select" aria-label="Select currency">
+        <option value="USD">$ USD</option>
+        <option value="EUR">€ EUR</option>
+        <option value="GBP">£ GBP</option>
+        <option value="JPY">¥ JPY</option>
+        <option value="INR">₹ INR</option>
+      </select>
+
+      <!-- Wishlist -->
+      <button class="nav-icon-btn" id="wishlist-btn" aria-label="View wishlist">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <span class="icon-btn-badge hidden" id="wishlist-count">0</span>
+      </button>
+
+      <!-- Cart -->
+      <button class="nav-icon-btn" id="cart-btn" aria-label="Open cart" aria-expanded="false" aria-controls="cart-drawer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        <span class="icon-btn-badge hidden" id="cart-count">0</span>
+      </button>
+
+      <!-- Dashboard -->
+      <button class="btn btn-primary btn-sm" id="dashboard-btn" aria-label="Open dashboard">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        Account
+      </button>
+    </div>
+
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════ HERO ═════════════════════════════════════→ -->
+<section class="hero" id="hero" aria-labelledby="hero-title">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-grid-lines" aria-hidden="true"></div>
+
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="hero-content">
+      <div class="hero-eyebrow" aria-hidden="true">Jewellery 3D model marketplace</div>
+
+      <h1 class="hero-title" id="hero-title">
+        Find your next<br/>
+        jewellery design<br/>
+        <span class="highlight">in 3D.</span>
+      </h1>
+
+      <p class="hero-desc">
+        Browse digital jewellery models for 3D printing, visualization, and design workflows. Explore rings, necklaces, earrings, pendants, and bracelets.
+      </p>
+
+      <div class="hero-ctas">
+        <button class="btn btn-primary btn-lg" id="hero-browse-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Browse Jewellery
+        </button>
+        <button class="btn btn-outline btn-lg" id="hero-upload-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Sell Your Models
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ FILTER BAR ═══════════════════════════════ -->
+<div class="filter-bar" id="filter-bar" role="navigation" aria-label="Product filters">
+  <div class="container">
+    <div class="filter-inner">
+
+      <button class="filter-tab active" data-cat="all">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        All Jewellery
+        <span class="filter-tab-count" id="count-all">6</span>
+      </button>
+
+      <div class="filter-divider" aria-hidden="true"></div>
+
+      <!-- Subcategory chips (dynamic) -->
+      <div id="subcategory-chips" style="display:flex;gap:8px;align-items:center;"></div>
+
+      <div class="filter-sort-wrap">
+        <!-- Price Range -->
+        <div class="price-range-wrap" aria-label="Filter by price">
+          <span class="price-range-label">Max: <strong id="price-max-label">$500</strong></span>
+          <input type="range" class="price-slider" id="price-slider" min="0" max="500" value="500" step="10" aria-label="Maximum price" style="--slider-pct:100%;" />
+        </div>
+
+        <!-- Sort -->
+        <select class="filter-select" id="sort-select" aria-label="Sort products">
+          <option value="featured">Featured</option>
+          <option value="price-asc">Price: Low → High</option>
+          <option value="price-desc">Price: High → Low</option>
+          <option value="rating">Top Rated</option>
+          <option value="newest">Newest</option>
+          <option value="popular">Most Downloaded</option>
+        </select>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ PRODUCTS ═════════════════════════════════ -->
+<main class="products-section" id="products-section">
+  <div class="container">
+
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Explore jewellery models</h2>
+        <p class="section-subtitle">Browse rings, necklaces, earrings, pendants, and bracelets.</p>
+      </div>
+    </div>
+
+    <!-- Results info bar -->
+    <div class="flex-between" style="margin-bottom:1.5rem;">
+      <p style="font-size:0.875rem;color:var(--text-secondary);">
+        Showing <strong id="results-count" style="color:var(--text-primary);">12</strong> results
+        <span id="results-filter-label"></span>
+      </p>
+      <div class="flex-gap-4">
+        <button class="nav-icon-btn" id="view-grid-btn" aria-label="Grid view" aria-pressed="true" style="width:34px;height:34px;border:1px solid var(--border);border-radius:var(--radius-md);color:var(--blue-vivid);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </button>
+        <button class="nav-icon-btn" id="view-list-btn" aria-label="List view" aria-pressed="false" style="width:34px;height:34px;border:1px solid var(--border);border-radius:var(--radius-md);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <p class="community-sync-error hidden" id="community-sync-error" role="status" aria-live="polite"></p>
+
+    <!-- Product Grid -->
+    <div class="product-grid" id="product-grid" role="list" aria-label="Jewellery model listings"></div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden" style="text-align:center;padding:5rem 0;color:var(--text-muted);">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin:0 auto 1.5rem;opacity:0.3;" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <h3 style="font-size:1.2rem;color:var(--text-secondary);margin-bottom:0.5rem;">No jewellery models found</h3>
+      <p style="font-size:0.875rem;">Try a different search or adjust the price filter.</p>
+    </div>
+
+  </div>
+</main>
+
+<!-- ═══════════════════════════════ 3D VIEWER MODAL ══════════════════════════ -->
+<div class="viewer-modal" id="viewer-modal" role="dialog" aria-modal="true" aria-labelledby="viewer-title">
+  <div class="viewer-panel">
+
+    <!-- Canvas side -->
+    <div class="viewer-canvas-area" role="img" aria-label="3D model preview">
+      <canvas id="product-viewer-canvas"></canvas>
+
+      <div class="viewer-controls" role="toolbar" aria-label="3D viewer controls">
+        <button class="btn btn-ghost btn-sm" id="viewer-rotate-btn" title="Auto-rotate">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+          Rotate
+        </button>
+        <button class="btn btn-ghost btn-sm" id="viewer-wireframe-btn" title="Toggle wireframe">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+          Wireframe
+        </button>
+        <button class="btn btn-ghost btn-sm" id="viewer-reset-btn" title="Reset camera">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset
+        </button>
+      </div>
+
+      <button class="viewer-close" id="viewer-close" aria-label="Close 3D viewer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Info sidebar -->
+    <div class="viewer-sidebar">
+      <!-- Header -->
+      <div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;" id="viewer-badges"></div>
+        <h2 id="viewer-title" style="font-size:1.2rem;margin-bottom:4px;"></h2>
+        <p style="font-size:0.8rem;color:var(--blue-soft);" id="viewer-creator"></p>
+      </div>
+
+      <!-- Rating -->
+      <div class="product-rating" id="viewer-rating"></div>
+
+      <!-- Description -->
+      <p id="viewer-description" style="font-size:0.875rem;color:var(--text-secondary);line-height:1.7;"></p>
+
+      <!-- Spec Grid -->
+      <div class="viewer-spec-grid" id="viewer-specs"></div>
+
+      <!-- Download Formats -->
+      <div>
+        <p style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.75rem;">Available Formats</p>
+        <div class="download-options" id="viewer-formats"></div>
+      </div>
+
+      <!-- Price + CTA -->
+      <div style="border-top:1px solid var(--border);padding-top:1.25rem;">
+        <div class="product-price-wrap" style="margin-bottom:1rem;">
+          <span class="product-price" id="viewer-price"></span>
+          <span class="product-price-original" id="viewer-price-original"></span>
+          <span class="product-sale-pct hidden" id="viewer-sale-pct"></span>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg" id="viewer-add-to-cart">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          Add to Cart
+        </button>
+        <button class="btn btn-outline btn-full" id="viewer-wishlist" style="margin-top:0.5rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Save to Wishlist
+        </button>
+      </div>
+
+      <!-- Reviews section (stub) -->
+      <div id="viewer-reviews"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CART DRAWER ══════════════════════════════ -->
+<div class="cart-overlay" id="cart-overlay" aria-hidden="true"></div>
+<aside class="cart-drawer" id="cart-drawer" role="dialog" aria-modal="true" aria-label="Shopping cart" aria-expanded="false">
+
+  <div class="cart-header">
+    <div>
+      <h2 class="cart-title">Your Cart</h2>
+      <p class="cart-count" id="cart-header-count">0 items</p>
+    </div>
+    <button class="nav-icon-btn" id="cart-close" aria-label="Close cart">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Free Shipping Progress -->
+  <div class="cart-free-shipping">
+    <p class="shipping-progress-label">
+      <span id="shipping-msg">Add <strong id="shipping-remaining">$500.00</strong> more for free global courier shipping!</span>
+    </p>
+    <div class="shipping-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="500" aria-label="Free shipping progress">
+      <div class="shipping-progress-fill" id="shipping-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Cart Items -->
+  <div class="cart-items" id="cart-items" role="list">
+    <div class="cart-empty" id="cart-empty">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <div>
+        <p style="font-weight:600;margin-bottom:4px;">Your cart is empty</p>
+        <p style="font-size:0.8rem;">Browse assets and add them here.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Footer -->
+  <div class="cart-footer">
+    <!-- Promo Code -->
+    <div>
+      <div class="promo-row">
+        <input type="text" class="promo-input" id="promo-input" placeholder="PROMO CODE" maxlength="20" aria-label="Promo code" />
+        <button class="btn btn-outline btn-sm" id="promo-apply">Apply</button>
+      </div>
+      <p class="promo-msg hidden" id="promo-msg"></p>
+    </div>
+
+    <!-- Totals -->
+    <div class="cart-totals">
+      <div class="cart-total-row">
+        <span class="label">Subtotal</span>
+        <span class="value" id="cart-subtotal">$0.00</span>
+      </div>
+      <div class="cart-total-row" id="discount-row" style="display:none">
+        <span class="label" style="color:var(--success);">Discount</span>
+        <span class="value" style="color:var(--success);" id="cart-discount">-$0.00</span>
+      </div>
+      <div class="cart-total-row">
+        <span class="label">Platform Fee</span>
+        <span class="value" id="cart-fee">$0.00</span>
+      </div>
+      <div class="cart-total-row primary">
+        <span class="label">Total</span>
+        <span class="value" id="cart-total">$0.00</span>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full btn-lg" id="checkout-btn" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Checkout
+    </button>
+  </div>
+
+</aside>
+
+<!-- ═══════════════════════════════ CHECKOUT MODAL ═══════════════════════════ -->
+<div class="checkout-modal" id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+  <div class="checkout-panel">
+
+    <div class="checkout-header">
+      <div>
+        <h2 class="checkout-header-title" id="checkout-title">Checkout</h2>
+        <p class="checkout-demo-label">Checkout preview</p>
+      </div>
+
+      <!-- Step Indicators -->
+      <div class="checkout-steps" role="list" aria-label="Checkout progress">
+        <div class="checkout-step active" id="step-ind-1" role="listitem" aria-current="step">1</div>
+        <div class="checkout-step-connector" aria-hidden="true"></div>
+        <div class="checkout-step" id="step-ind-2" role="listitem">2</div>
+        <div class="checkout-step-connector" aria-hidden="true"></div>
+        <div class="checkout-step" id="step-ind-3" role="listitem">3</div>
+      </div>
+
+      <button class="nav-icon-btn" id="checkout-close" aria-label="Close checkout" style="margin-left:auto;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="checkout-body">
+
+      <!-- ── Step 1: Delivery ── -->
+      <div class="checkout-step-panel active" id="checkout-step-1">
+        <h3 style="font-family:var(--font-ui);font-size:1rem;font-weight:600;margin-bottom:1.5rem;">Delivery Details</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="first-name">First Name</label>
+            <input class="form-input" type="text" id="first-name" placeholder="John" autocomplete="given-name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="last-name">Last Name</label>
+            <input class="form-input" type="text" id="last-name" placeholder="Doe" autocomplete="family-name" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input class="form-input" type="email" id="email" placeholder="john@studio.com" autocomplete="email" />
+          <p class="form-error-msg hidden" id="email-error">Please enter a valid email.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="company">Company / Studio (Optional)</label>
+          <input class="form-input" type="text" id="company" placeholder="Arch Studio Inc." autocomplete="organization" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="country">Country</label>
+            <select class="form-select" id="country" autocomplete="country">
+              <option value="">Select country…</option>
+              <option value="US">United States</option>
+              <option value="GB">United Kingdom</option>
+              <option value="IN">India</option>
+              <option value="DE">Germany</option>
+              <option value="JP">Japan</option>
+              <option value="CA">Canada</option>
+              <option value="AU">Australia</option>
+              <option value="FR">France</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="license-type">License Type</label>
+            <select class="form-select" id="license-type">
+              <option value="standard">Standard License</option>
+              <option value="extended">Extended License (+$49)</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full" id="step1-next">
+          Continue to Payment
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+      <!-- ── Step 2: Payment ── -->
+      <div class="checkout-step-panel" id="checkout-step-2">
+        <h3 style="font-family:var(--font-ui);font-size:1rem;font-weight:600;margin-bottom:1.5rem;">Payment Method</h3>
+
+        <div class="payment-methods" role="radiogroup" aria-label="Payment method">
+          <button class="payment-method selected" type="button" data-method="card" role="radio" aria-checked="true" tabindex="0">
+            <span class="payment-method-icon payment-brand-card" aria-hidden="true">CC</span>
+            <div class="payment-method-name">Card</div>
+          </button>
+          <button class="payment-method" type="button" data-method="phonepe" role="radio" aria-checked="false" tabindex="0">
+            <span class="payment-method-icon payment-brand-phonepe" aria-hidden="true">P</span>
+            <span class="payment-method-name">PhonePe</span>
+          </button>
+          <button class="payment-method" type="button" data-method="googlepay" role="radio" aria-checked="false" tabindex="0">
+            <span class="payment-method-icon payment-brand-google" aria-hidden="true">G</span>
+            <span class="payment-method-name">Google Pay</span>
+          </button>
+          <button class="payment-method" type="button" data-method="paypal" role="radio" aria-checked="false" tabindex="0">
+            <span class="payment-method-icon payment-brand-paypal" aria-hidden="true">P</span>
+            <span class="payment-method-name">PayPal</span>
+          </button>
+          <button class="payment-method" type="button" data-method="binance" role="radio" aria-checked="false" tabindex="0">
+            <span class="payment-method-icon payment-brand-binance" aria-hidden="true">B</span>
+            <span class="payment-method-name">Binance Pay</span>
+          </button>
+        </div>
+
+        <div class="payment-setup-note" id="payment-setup-note" role="status" aria-live="polite">
+          <strong>Online payments are not available yet.</strong>
+          <span id="payment-method-message">Card selected. Connect a payment provider to accept real payments. This preview does not collect payment details.</span>
+        </div>
+
+        <!-- Order Summary -->
+        <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;margin-top:1rem;">
+          <p style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.75rem;">Order Summary</p>
+          <div id="checkout-summary-items" style="font-size:0.8rem;"></div>
+          <div style="border-top:1px solid var(--border);padding-top:0.75rem;margin-top:0.75rem;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:700;">Total</span>
+            <span style="color:var(--blue-vivid);font-family:var(--font-display);font-size:1.2rem;font-weight:700;" id="checkout-total"></span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+          <button class="btn btn-ghost" id="step2-back">← Back</button>
+          <button class="btn btn-success btn-full" id="step2-pay" disabled aria-describedby="payment-setup-note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span id="pay-btn-label">Online payments unavailable</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Step 3: Confirmation ── -->
+      <div class="checkout-step-panel" id="checkout-step-3">
+        <div class="order-confirmation">
+          <div class="order-checkmark" role="img" aria-label="Order confirmed">✓</div>
+          <h3 style="font-family:var(--font-display);font-size:1.4rem;font-weight:700;">Order Confirmed!</h3>
+          <p style="font-size:0.875rem;color:var(--text-secondary);margin-top:0.5rem;">
+            Download links have been sent to <strong id="confirm-email"></strong>
+          </p>
+          <div class="order-number" id="order-number"></div>
+
+          <div class="order-tracking">
+            <p style="margin-bottom:0.5rem;"><strong>Estimated Delivery:</strong> Instant (Digital Download)</p>
+            <p><strong>CDN Region:</strong> Auto-selected (nearest edge node)</p>
+            <p style="margin-top:0.5rem;font-size:0.72rem;color:var(--text-muted);">Files served via global CDN · Average download speed: 500 MB/s</p>
+          </div>
+
+          <!-- Download items -->
+          <div id="confirm-downloads" style="margin-top:1rem;"></div>
+
+          <button class="btn btn-primary btn-full" id="confirm-done" style="margin-top:1.5rem;">
+            Go to Dashboard → Downloads
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DASHBOARD OVERLAY ════════════════════════ -->
+<div class="upload-overlay" id="upload-overlay" role="dialog" aria-modal="true" aria-labelledby="upload-title" aria-hidden="true">
+  <section class="upload-panel">
+    <header class="upload-header">
+      <div>
+        <h2 id="upload-title">Upload a jewellery model</h2>
+        <p>Store your model securely and add its preview to the marketplace.</p>
+      </div>
+      <button class="nav-icon-btn" id="upload-close" type="button" aria-label="Close upload panel">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+    <div class="upload-body">
+      <div class="upload-status" id="upload-setup-status" role="status" aria-live="polite"></div>
+      <a class="upload-setup-link hidden" id="upload-setup-link" href="SUPABASE_SETUP.md" target="_blank" rel="noopener noreferrer">Open free storage setup steps</a>
+
+      <form id="creator-login-form" class="upload-login-form">
+        <h3>Sign in to your creator account</h3>
+        <p class="upload-help">Use the owner account created in your Supabase project.</p>
+        <label class="form-label" for="creator-email">Email</label>
+        <input class="form-input" id="creator-email" type="email" autocomplete="username" required />
+        <label class="form-label" for="creator-password">Password</label>
+        <input class="form-input" id="creator-password" type="password" autocomplete="current-password" required />
+        <button class="btn btn-primary btn-full" id="creator-login-btn" type="submit">Sign in</button>
+      </form>
+
+      <div class="creator-upload-content hidden" id="creator-upload-content">
+        <div class="creator-account-row">
+          <span id="creator-account-email"></span>
+          <button class="btn btn-ghost btn-sm" id="creator-signout-btn" type="button">Sign out</button>
+        </div>
+        <form id="creator-upload-form">
+          <label class="form-label" for="model-title">Model title</label>
+          <input class="form-input" id="model-title" name="title" maxlength="90" required placeholder="e.g. Filigree Gold Ring" />
+
+          <label class="form-label" for="model-category">Jewellery type</label>
+          <select class="form-select" id="model-category" name="category" required>
+            <option value="rings">Rings</option>
+            <option value="necklaces">Necklaces</option>
+            <option value="earrings">Earrings</option>
+            <option value="pendants">Pendants</option>
+            <option value="bracelets">Bracelets</option>
+          </select>
+
+          <label class="form-label" for="model-description">Description</label>
+          <textarea class="form-input upload-description" id="model-description" name="description" maxlength="1200" required placeholder="Describe the design and included files."></textarea>
+
+          <label class="form-label" for="model-price">Price in USD</label>
+          <input class="form-input" id="model-price" name="price" type="number" min="0" max="500" step="0.01" value="0" required />
+
+          <label class="form-label" for="model-file">3D model file</label>
+          <input class="form-input upload-file-input" id="model-file" name="model" type="file" accept=".blend,.fbx,.obj,.stl,.glb,.gltf,.3mf,.step,.stp,.iges,.igs" required />
+          <p class="upload-help">Supported: BLEND, FBX, OBJ, STL, GLB, GLTF, 3MF, STEP, IGES. Maximum 50 MB.</p>
+
+          <label class="form-label" for="model-preview">Preview image</label>
+          <input class="form-input upload-file-input" id="model-preview" name="preview" type="file" accept="image/jpeg,image/png,image/webp" required />
+          <p class="upload-help">JPG, PNG or WebP. Maximum 5 MB.</p>
+          <div class="upload-progress hidden" id="upload-progress" role="status" aria-live="polite"></div>
+          <button class="btn btn-primary btn-full" id="model-submit-btn" type="submit">Upload model</button>
+        </form>
+        <section class="creator-model-list" aria-labelledby="creator-model-list-title">
+          <h3 id="creator-model-list-title">Your uploads</h3>
+          <div id="creator-model-list" aria-live="polite"></div>
+        </section>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="dashboard-overlay" id="dashboard-overlay" role="dialog" aria-modal="true" aria-labelledby="dashboard-title">
+  <div class="dashboard-panel">
+
+    <!-- Sidebar Nav -->
+    <nav class="dashboard-sidebar" aria-label="Dashboard navigation">
+      <div class="dashboard-role-badge" id="dashboard-role-label">Buyer Dashboard</div>
+
+      <!-- Buyer nav items -->
+      <div id="buyer-nav">
+        <button class="dashboard-nav-item active" data-section="purchases">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Purchases
+        </button>
+        <button class="dashboard-nav-item" data-section="downloads">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Downloads
+        </button>
+        <button class="dashboard-nav-item" data-section="wishlist">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Wishlist
+        </button>
+        <button class="dashboard-nav-item" data-section="licenses">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Licenses
+        </button>
+      </div>
+
+      <!-- Role switcher -->
+      <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);">
+        <p style="font-size:0.68rem;color:var(--text-muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Switch View</p>
+        <select class="filter-select" id="role-switcher" style="width:100%;height:36px;" aria-label="Switch dashboard role">
+          <option value="buyer">Buyer</option>
+          <option value="creator">Creator</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <!-- Close -->
+      <button class="btn btn-ghost btn-sm" id="dashboard-close" style="margin-top:0.75rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Close
+      </button>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content" id="dashboard-content">
+      <h2 style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;margin-bottom:2rem;" id="dashboard-title">My Dashboard</h2>
+
+      <!-- Purchases -->
+      <div class="dashboard-section active" id="section-purchases">
+        <div class="stat-cards" id="buyer-stats"></div>
+        <h3 style="font-family:var(--font-ui);font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:1rem;">Purchase History</h3>
+        <div id="purchases-table-wrap"></div>
+      </div>
+
+      <!-- Downloads -->
+      <div class="dashboard-section" id="section-downloads">
+        <h3 style="font-family:var(--font-ui);font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:1rem;">Your Downloads</h3>
+        <div id="downloads-list"></div>
+      </div>
+
+      <!-- Wishlist -->
+      <div class="dashboard-section" id="section-wishlist">
+        <h3 style="font-family:var(--font-ui);font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:1rem;">Saved Assets</h3>
+        <div id="wishlist-grid" class="product-grid"></div>
+      </div>
+
+      <!-- Licenses -->
+      <div class="dashboard-section" id="section-licenses">
+        <h3 style="font-family:var(--font-ui);font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:1rem;">License Keys</h3>
+        <div id="licenses-list"></div>
+      </div>
+
+      <!-- Creator: Analytics -->
+      <div class="dashboard-section" id="section-analytics">
+        <div class="stat-cards" id="creator-stats"></div>
+        <h3 style="font-family:var(--font-ui);font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:1rem;">Sales Analytics</h3>
+        <div id="analytics-chart-wrap" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;"></div>
+      </div>
+
+      <!-- Creator: My Products -->
+      <div class="dashboard-section" id="section-my-products">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+          <h3 style="font-family:var(--font-ui);font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);">My Products</h3>
+          <button class="btn btn-primary btn-sm" id="open-upload-panel" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Upload New Asset
+          </button>
+        </div>
+        <div id="my-products-table"></div>
+      </div>
+
+      <!-- Creator: Earnings -->
+      <div class="dashboard-section" id="section-earnings">
+        <div class="stat-cards" id="earnings-stats"></div>
+        <h3 style="font-family:var(--font-ui);font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:1rem;">Payout History</h3>
+        <div id="payouts-table"></div>
+        <button class="btn btn-primary" style="margin-top:1.5rem;" id="request-payout-btn">
+          Request Payout
+        </button>
+      </div>
+
+      <!-- Admin: Users -->
+      <div class="dashboard-section" id="section-users">
+        <div class="stat-cards" id="admin-stats"></div>
+        <h3 style="font-family:var(--font-ui);font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:1rem;">User Management</h3>
+        <div id="users-table-wrap"></div>
+      </div>
+
+      <!-- Admin: Moderation -->
+      <div class="dashboard-section" id="section-moderation">
+        <h3 style="font-family:var(--font-ui);font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:1rem;">Content Moderation Queue</h3>
+        <div id="moderation-queue"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ FOUNDER & CONTACT SECTION ═════════════════ -->
+<section class="founder-section" id="founder-contact-section" aria-labelledby="founder-section-title">
+  <div class="container">
+    <div class="section-header" style="text-align:center;display:block;margin-bottom:3rem;">
+      <span class="hero-eyebrow" style="margin:0 auto 0.75rem;">Direct Connect</span>
+      <h2 class="section-title" id="founder-section-title">Get in Touch with the Founder</h2>
+      <p class="section-subtitle">Have a custom jewellery model request, CAD requirement, or licensing question? Reach out directly.</p>
+    </div>
+
+    <div class="founder-grid-layout">
+
+      <!-- Founder Profile Card -->
+      <div class="founder-profile-card">
+        <div class="founder-avatar-wrap" aria-hidden="true">MS</div>
+        <h3 class="founder-name">MR SURYA</h3>
+        <p class="founder-role">Founder &amp; Lead 3D Designer</p>
+        <p class="founder-bio">
+          Driving SS Jewellery Creators with detailed digital jewellery models and custom 3D commissions. Reach out for partnerships, licensing, or bespoke design work.
+        </p>
+
+        <!-- Social Media Buttons -->
+        <div class="founder-social-btns">
+          <a href="https://www.instagram.com/ssjewellerycreators?stkn=MWc4ZTZoZmJlZTFlaw==" target="_blank" rel="noopener noreferrer" class="social-btn social-btn-instagram" title="Follow SS Jewellery Creators on Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            Instagram
+          </a>
+          <a href="https://www.facebook.com/share/1BfQGrhuCw/" target="_blank" rel="noopener noreferrer" class="social-btn social-btn-facebook" title="Follow SS Jewellery Creators on Facebook">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            Facebook
+          </a>
+        </div>
+      </div>
+
+      <!-- Contact Details & Quick Inquiry -->
+      <div>
+        <div class="contact-cards-grid">
+          <!-- Phone Card -->
+          <div class="contact-card">
+            <div class="contact-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
+            <div class="contact-card-label">Direct Phone</div>
+            <div class="contact-card-value">+91 8983405429</div>
+            <a href="tel:+918983405429" class="contact-card-link">
+              <span>Call Now</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+
+          <!-- WhatsApp Card -->
+          <div class="contact-card" style="border-color:rgba(37,211,102,0.3);">
+            <div class="contact-card-icon" style="background:rgba(37,211,102,0.15);color:#25d366;border-color:rgba(37,211,102,0.3);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            </div>
+            <div class="contact-card-label" style="color:#25d366;">WhatsApp Chat</div>
+            <div class="contact-card-value">8983405429</div>
+            <a href="https://wa.me/918983405429?text=Hello%20Mr.%20Surya,%20I%20am%20interested%20in%203D%20models%20from%20SS%20Jewellery%20Creators" target="_blank" rel="noopener noreferrer" class="contact-card-link" style="color:#25d366;">
+              <span>Open WhatsApp Chat</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+
+          <!-- Email Card -->
+          <div class="contact-card">
+            <div class="contact-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div class="contact-card-label">Official Email</div>
+            <div class="contact-card-value" style="font-size:0.85rem;">sscsurya8612@gmail.com</div>
+            <a href="mailto:sscsurya8612@gmail.com" class="contact-card-link">
+              <span>Send Email</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+
+          <!-- Location Card -->
+          <div class="contact-card">
+            <div class="contact-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="contact-card-label">Headquarters / Studio</div>
+            <div class="contact-card-value">West Bengal, Howrah</div>
+            <div class="contact-card-link" style="color:var(--text-muted);">
+              <span>India · Global Delivery</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Inquiry Form -->
+        <div class="contact-form-box">
+          <div class="contact-form-header">
+            <h4 class="contact-form-title">Send Direct Message to Mr. Surya</h4>
+            <p class="contact-form-subtitle">Have a custom asset request or enterprise order? Fill out the brief form below.</p>
+          </div>
+          <form id="direct-inquiry-form" onsubmit="event.preventDefault(); window.submitInquiry();">
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom:0.75rem;">
+                <label class="form-label" for="inquiry-name">Your Name</label>
+                <input type="text" id="inquiry-name" class="form-input" placeholder="Enter your full name" required />
+              </div>
+              <div class="form-group" style="margin-bottom:0.75rem;">
+                <label class="form-label" for="inquiry-email">Email / Phone</label>
+                <input type="text" id="inquiry-email" class="form-input" placeholder="you@company.com or phone" required />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label" for="inquiry-msg">Project Requirement / Message</label>
+              <textarea id="inquiry-msg" class="form-input" style="height:80px;padding-top:8px;resize:vertical;" placeholder="Describe the jewellery model, style, or 3D format you need..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send Message to Mr. Surya
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════════ -->
+<footer class="footer" aria-labelledby="footer-heading">
+  <div class="container">
+    <div class="footer-grid">
+
+      <!-- Brand & Owner Info -->
+      <div>
+        <a href="#" class="nav-logo" style="margin-bottom:0.75rem;">
+          <div class="nav-logo-mark">SS</div>
+          <div class="nav-logo-text">
+            SS Jewellery Creators
+            <span>3D Jewellery Models</span>
+          </div>
+        </a>
+        <p class="footer-brand-desc">
+          Founded &amp; Managed by <strong>MR SURYA</strong>. Browse digital jewellery models and custom 3D designs for makers and jewellery professionals.
+        </p>
+
+        <!-- Social Icons -->
+        <div style="display:flex;gap:0.75rem;margin-top:1rem;">
+          <a href="https://www.instagram.com/ssjewellerycreators?stkn=MWc4ZTZoZmJlZTFlaw==" target="_blank" rel="noopener noreferrer" class="nav-icon-btn" style="width:38px;height:38px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);border:none;border-radius:var(--radius-md);color:#fff;" aria-label="Instagram Profile" title="SS Jewellery Creators on Instagram">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <a href="https://www.facebook.com/share/1BfQGrhuCw/" target="_blank" rel="noopener noreferrer" class="nav-icon-btn" style="width:38px;height:38px;background:#1877f2;border:none;border-radius:var(--radius-md);color:#fff;" aria-label="Facebook Page" title="SS Jewellery Creators on Facebook">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+          <a href="https://wa.me/918983405429?text=Hello%20Mr.%20Surya,%20I%20am%20interested%20in%203D%20models%20from%20SS%20Jewellery%20Creators" target="_blank" rel="noopener noreferrer" class="nav-icon-btn" style="width:38px;height:38px;background:#25d366;border:none;border-radius:var(--radius-md);color:#fff;" aria-label="WhatsApp Contact" title="Chat on WhatsApp">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Marketplace Links -->
+      <div>
+        <h3 class="footer-col-title" id="footer-heading">Marketplace</h3>
+        <ul class="footer-links" role="list">
+          <li><a class="footer-link" href="#products-section">Browse Jewellery Models</a></li>
+          <li><a class="footer-link" href="#products-section">Rings</a></li>
+          <li><a class="footer-link" href="#products-section">Necklaces</a></li>
+          <li><a class="footer-link" href="#products-section">Earrings &amp; Pendants</a></li>
+          <li><a class="footer-link" href="#products-section">Bracelets</a></li>
+          <li><a class="footer-link" href="#founder-contact-section">Custom Designs</a></li>
+        </ul>
+      </div>
+
+      <!-- Creators -->
+      <div>
+        <h3 class="footer-col-title">For Creators</h3>
+        <ul class="footer-links" role="list">
+          <li><a class="footer-link" href="#founder-contact-section">Upload &amp; Sell</a></li>
+          <li><a class="footer-link" href="#founder-contact-section">Creator Guidelines</a></li>
+          <li><a class="footer-link" href="#founder-contact-section">Pricing &amp; Commission</a></li>
+          <li><a class="footer-link" href="#founder-contact-section">Creator Analytics</a></li>
+          <li><a class="footer-link" href="#founder-contact-section">Payout System</a></li>
+          <li><a class="footer-link" href="#founder-contact-section">Creator Forum</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact & Owner Direct -->
+      <div>
+        <h3 class="footer-col-title">Owner &amp; Contact</h3>
+        <ul class="footer-links" role="list" style="font-size:0.875rem;">
+          <li style="color:var(--text-primary);font-weight:600;">
+            👑 Founder: <span>MR SURYA</span>
+          </li>
+          <li>
+            <a class="footer-link" href="tel:+918983405429" style="display:flex;align-items:center;gap:6px;">
+              <span>📞 Phone: +91 8983405429</span>
+            </a>
+          </li>
+          <li>
+            <a class="footer-link" href="https://wa.me/918983405429?text=Hello%20Mr.%20Surya,%20I%20am%20interested%20in%203D%20models%20from%20SS%20Jewellery%20Creators" target="_blank" rel="noopener noreferrer" style="color:#25d366;display:flex;align-items:center;gap:6px;">
+              <span>💬 WhatsApp: 8983405429</span>
+            </a>
+          </li>
+          <li>
+            <a class="footer-link" href="mailto:sscsurya8612@gmail.com">
+              <span>✉️ sscsurya8612@gmail.com</span>
+            </a>
+          </li>
+          <li style="color:var(--text-secondary);">
+            <span>📍 West Bengal, Howrah</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2026 SS Jewellery Creators · Owned by MR SURYA. All rights reserved.</p>
+      <div style="display:flex;gap:1.5rem;">
+        <a class="footer-link" href="#">Privacy Policy</a>
+        <a class="footer-link" href="#">Terms of Service</a>
+        <a class="footer-link" href="#">License Guide</a>
+      </div>
+      <p style="display:flex;align-items:center;gap:6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Payment processing is not configured yet
+      </p>
+    </div>
+
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════ FLOATING WHATSAPP BUTTON ══════════════════ -->
+<div class="floating-whatsapp" role="complementary" aria-label="Chat with Mr. Surya on WhatsApp">
+  <div class="floating-whatsapp-label">
+    <span>Chat with Mr. Surya</span>
+  </div>
+  <a href="https://wa.me/918983405429?text=Hello%20Mr.%20Surya,%20I%20am%20interested%20in%203D%20models%20from%20SS%20Jewellery%20Creators" target="_blank" rel="noopener noreferrer" class="floating-whatsapp-btn" aria-label="Direct WhatsApp message to Mr. Surya (8983405429)">
+    <div class="whatsapp-pulse" aria-hidden="true"></div>
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  </a>
+</div>
+
+<!-- ═══════════════════════════════ TOAST CONTAINER ══════════════════════════ -->
+<div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+<!-- Scripts -->
+<script src="products.js"></script>
+<script src="app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="creator-upload.js"></script>
+</body>
+</html>
