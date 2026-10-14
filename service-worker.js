@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ss-jewellery-static-v1';
+const CACHE_NAME = 'ss-jewellery-static-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -9,6 +9,8 @@ const APP_SHELL = [
   './supabase-config.js',
   './app.webmanifest',
   './app-icon.svg',
+  './SUPABASE_SETUP.md',
+  './supabase-setup.sql',
 ];
 
 self.addEventListener('install', (event) => {

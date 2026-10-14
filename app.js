@@ -1,8 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════
    SS JEWELLERY CREATORS — app.js
-   Full application logic: state, filtering, cart, checkout,
-   3D viewer (Three.js), Web Audio hero, CDN download pipeline,
-   dashboard (buyer / creator / admin), currency, promo codes.
+   Storefront interactions, filtering, wishlist, cart preview,
+   lazy-loaded 3D viewer, creator tools, and currency display.
    ══════════════════════════════════════════════════════════════════ */
 
 'use strict';
@@ -18,13 +17,11 @@ const state = {
   communityProducts: [],
   cart:           [],      // [{product, qty, format}]
   wishlist:       new Set(),
-  promoCode:      null,
-  promoDiscount:  0,
   checkoutStep:   1,
   paymentMethod:  'card',
   dashboardRole:  'buyer',
   dashboardSection: 'purchases',
-  purchases:      [],      // simulated past orders
+  purchases:      [],
   viewerProduct:  null,
   viewerAutoRotate: true,
   viewerWireframe: false,
@@ -41,19 +38,6 @@ function fmt(usd) {
   if (state.currency === 'JPY') return `${sym}${Math.round(val).toLocaleString()}`;
   return `${sym}${val.toFixed(2)}`;
 }
-
-/* ─── Promo Codes ──────────────────────────────────────────────────── */
-const PROMO_CODES = {
-  'SSLAUNCH':  { type: 'pct',  value: 15, label: '15% off' },
-  'ARCH20':    { type: 'pct',  value: 20, label: '20% off' },
-  'GAME10':    { type: 'pct',  value: 10, label: '10% off' },
-  'FLAT25':    { type: 'flat', value: 25, label: '$25 off' },
-  'NEWUSER':   { type: 'pct',  value: 12, label: '12% off' },
-};
-
-/* ─── Platform Fee ─────────────────────────────────────────────────── */
-const PLATFORM_FEE_PCT = 0.03; // 3%
-const FREE_SHIPPING_THRESHOLD = 500;
 
 /* ──────────────────────────────────────────────────────────────────── */
 /*  DOM HELPERS                                                          */
@@ -87,15 +71,6 @@ function findProduct(productId) {
 function show(el) { (typeof el === 'string' ? $(el) : el)?.classList.remove('hidden'); }
 function hide(el) { (typeof el === 'string' ? $(el) : el)?.classList.add('hidden'); }
 
-function starsHTML(rating) {
-  return Array.from({ length: 5 }, (_, i) => {
-    const filled = i < Math.floor(rating);
-    const half   = !filled && i < rating;
-    const color  = (filled || half) ? 'var(--star)' : 'var(--text-muted)';
-    return `<span class="star" style="color:${color};" aria-hidden="true">${filled ? '★' : half ? '⭑' : '☆'}</span>`;
-  }).join('');
-}
-
 /* ──────────────────────────────────────────────────────────────────── */
 /*  TOAST NOTIFICATIONS                                                  */
 /* ──────────────────────────────────────────────────────────────────── */
@@ -119,13 +94,16 @@ function initHeroCanvas() {
   const canvas = $('#hero-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let isVisible = !('IntersectionObserver' in window);
+  let animationFrame = null;
 
   function resize() {
     canvas.width  = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
   }
   resize();
-  window.addEventListener('resize', resize);
 
   // Particles
   const particles = Array.from({ length: 60 }, () => ({
@@ -171,9 +149,36 @@ function initHeroCanvas() {
       if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
     });
 
-    requestAnimationFrame(drawFrame);
+    if (isVisible && document.visibilityState === 'visible' && !motionPreference.matches) {
+      animationFrame = requestAnimationFrame(drawFrame);
+    }
   }
-  drawFrame();
+
+  function updateAnimation() {
+    if (animationFrame !== null) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+    }
+    if (!isVisible || document.visibilityState !== 'visible') return;
+    if (motionPreference.matches) drawFrame();
+    else animationFrame = requestAnimationFrame(drawFrame);
+  }
+
+  window.addEventListener('resize', () => {
+    resize();
+    updateAnimation();
+  });
+  document.addEventListener('visibilitychange', updateAnimation);
+  if (motionPreference.addEventListener) motionPreference.addEventListener('change', updateAnimation);
+  else motionPreference.addListener(updateAnimation);
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      updateAnimation();
+    });
+    observer.observe(canvas);
+  }
+  updateAnimation();
 }
 
 /* ──────────────────────────────────────────────────────────────────── */
@@ -283,9 +288,6 @@ function renderProductCard(p) {
   const productCategory = escapeHTML(p.subcategory);
   const productFileSize = escapeHTML(p.fileSize);
   const isWished = state.wishlist.has(String(p.id));
-  const discount = p.originalPrice
-    ? Math.round((1 - p.price / p.originalPrice) * 100)
-    : 0;
   const productImage = p.image || PRODUCT_IMAGES[p.id] || '';
   const fallbackSvg = getSVGForType(p.svgType, p.accentColor, 90);
   const productVisualMarkup = productImage
@@ -296,7 +298,6 @@ function renderProductCard(p) {
   const badges = [
     p.featured ? `<span class="badge badge-blue">Featured</span>` : '',
     p.new      ? `<span class="badge badge-green">New</span>` : '',
-    discount > 0 ? `<span class="badge badge-amber">-${discount}%</span>` : '',
   ].filter(Boolean).join('');
 
   const formatChips = p.formats.slice(0, 3)
@@ -351,16 +352,6 @@ function renderProductCard(p) {
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
             ${p.polygons}
           </span>
-          <span class="spec-item" style="color:var(--text-accent);opacity:0.7">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            ${p.downloads.toLocaleString()}
-          </span>
-        </div>
-
-        <div class="product-rating">
-          <div class="stars" aria-hidden="true">${starsHTML(p.rating)}</div>
-          <span class="rating-value">${p.rating}</span>
-          <span class="rating-count">(${p.reviews})</span>
         </div>
 
         <div class="product-footer">
@@ -368,8 +359,6 @@ function renderProductCard(p) {
             <span class="product-price" style="color:${p.accentColor};text-shadow:0 0 12px ${p.accentColor}60">
               ${fmt(p.price)}
             </span>
-            ${p.originalPrice ? `<span class="product-price-original">${fmt(p.originalPrice)}</span>` : ''}
-            ${discount > 0 ? `<span class="product-sale-pct">-${discount}%</span>` : ''}
           </div>
           <button class="btn btn-primary btn-sm add-to-cart" data-id="${productId}" aria-label="Add ${productName} to cart">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -416,9 +405,7 @@ function getFilteredProducts() {
   switch (state.sortBy) {
     case 'price-asc':   list.sort((a, b) => a.price - b.price); break;
     case 'price-desc':  list.sort((a, b) => b.price - a.price); break;
-    case 'rating':      list.sort((a, b) => b.rating - a.rating); break;
     case 'newest':      list.sort((a, b) => (b.new ? 1 : 0) - (a.new ? 1 : 0)); break;
-    case 'popular':     list.sort((a, b) => b.downloads - a.downloads); break;
     case 'featured':    list.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)); break;
   }
 
@@ -610,42 +597,11 @@ function renderCart() {
       });
     });
 
-    $('#checkout-btn').disabled = false;
+    $('#checkout-btn').disabled = true;
   }
 
-  // Shipping progress
   const subtotal = cartSubtotalUSD();
-  const pct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100);
-  $('#shipping-fill').style.width = `${pct}%`;
-  if (subtotal >= FREE_SHIPPING_THRESHOLD) {
-    setHTML('#shipping-msg', '<span style="color:var(--success);font-weight:600;">🎉 Free global shipping unlocked!</span>');
-  } else {
-    const rem = (FREE_SHIPPING_THRESHOLD - subtotal).toFixed(2);
-    setHTML('#shipping-msg', `Add <strong id="shipping-remaining">${fmt(+rem)}</strong> more for free global courier shipping!`);
-  }
-
-  // Totals
-  const discount = state.promoCode
-    ? (state.promoCode.type === 'pct'
-       ? subtotal * state.promoCode.value / 100
-       : Math.min(subtotal, state.promoCode.value))
-    : 0;
-
-  const discounted = subtotal - discount;
-  const fee  = discounted * PLATFORM_FEE_PCT;
-  const total = discounted + fee;
-
-  $('#cart-subtotal').textContent = fmt(subtotal);
-  $('#cart-fee').textContent = fmt(fee);
-  $('#cart-total').textContent = fmt(total);
-
-  const discRow = $('#discount-row');
-  if (discount > 0) {
-    discRow.style.display = 'flex';
-    $('#cart-discount').textContent = `−${fmt(discount)}`;
-  } else {
-    discRow.style.display = 'none';
-  }
+  $('#cart-total').textContent = fmt(subtotal);
 
   // Header count
   const totalQty = state.cart.reduce((s, i) => s + i.qty, 0);
@@ -715,18 +671,52 @@ function updateWishlistBadge() {
 /*  3D PRODUCT VIEWER (Three.js)                                        */
 /* ──────────────────────────────────────────────────────────────────── */
 let viewerScene, viewerCamera, viewerRenderer, viewerMesh, viewerAnimFrame;
+let threeLoadPromise;
+
+function loadThree() {
+  if (typeof THREE !== 'undefined') return Promise.resolve();
+  if (threeLoadPromise) return threeLoadPromise;
+
+  threeLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    script.crossOrigin = 'anonymous';
+    script.onload = resolve;
+    script.onerror = () => {
+      threeLoadPromise = null;
+      reject(new Error('The interactive 3D preview could not be loaded.'));
+    };
+    document.head.appendChild(script);
+  });
+  return threeLoadPromise;
+}
 
 function openViewer(product) {
   state.viewerProduct = product;
   const modal = $('#viewer-modal');
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+  const previewStatus = $('#viewer-load-status');
+  previewStatus.textContent = 'Loading interactive 3D preview…';
+  show(previewStatus);
 
   // Populate sidebar
   populateViewerSidebar(product);
 
-  // Init Three.js
-  requestAnimationFrame(() => initThreeViewer(product));
+  // Load the 3D library only when a visitor opens a model preview.
+  loadThree().then(() => {
+    if (state.viewerProduct === product && modal.classList.contains('open')) {
+      hide(previewStatus);
+      requestAnimationFrame(() => initThreeViewer(product));
+    }
+  }).catch(error => {
+    console.error(error.message);
+    if (state.viewerProduct === product && modal.classList.contains('open')) {
+      previewStatus.textContent = 'Interactive preview unavailable. Showing a static preview instead.';
+      show(previewStatus);
+      requestAnimationFrame(() => initThreeViewer(product));
+    }
+  });
 }
 
 function closeViewer() {
@@ -737,8 +727,6 @@ function closeViewer() {
 }
 
 function populateViewerSidebar(p) {
-  const discount = p.originalPrice ? Math.round((1 - p.price / p.originalPrice) * 100) : 0;
-
   // Badges
   setHTML('#viewer-badges', [
     p.featured ? `<span class="badge badge-blue">Featured</span>` : '',
@@ -748,11 +736,7 @@ function populateViewerSidebar(p) {
 
   setHTML('#viewer-title', escapeHTML(p.name));
   setHTML('#viewer-creator', `by ${escapeHTML(p.creator)}`);
-  setHTML('#viewer-rating', `
-    <div class="stars">${starsHTML(p.rating)}</div>
-    <span class="rating-value">${p.rating}</span>
-    <span class="rating-count">(${p.reviews} reviews · ${p.downloads.toLocaleString()} downloads)</span>
-  `);
+  setHTML('#viewer-rating', '<span class="rating-count">Customer ratings and download counts are not available yet.</span>');
   setHTML('#viewer-description', escapeHTML(p.description));
 
   // Specs grid
@@ -779,39 +763,10 @@ function populateViewerSidebar(p) {
 
   // Price
   setHTML('#viewer-price', fmt(p.price));
-  if (p.originalPrice) {
-    setHTML('#viewer-price-original', fmt(p.originalPrice));
-    show('#viewer-sale-pct');
-    setHTML('#viewer-sale-pct', `-${discount}%`);
-  } else {
-    setHTML('#viewer-price-original', '');
-    hide('#viewer-sale-pct');
-  }
+  setHTML('#viewer-price-original', '');
+  hide('#viewer-sale-pct');
 
-  // Reviews stub
-  setHTML('#viewer-reviews', `
-    <div style="border-top:1px solid var(--border);padding-top:1rem;">
-      <p style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.75rem;">Top Reviews</p>
-      ${p.reviews > 0 ? generateFakeReviews(p) : '<p style="font-size:0.8rem;color:var(--text-secondary);">No reviews yet.</p>'}
-    </div>
-  `);
-}
-
-function generateFakeReviews(p) {
-  const reviewers = ['arch_viz_pro', 'gamedev_studio', 'PixelCraft3D', 'NordForm_Fan', 'TechVizMaster'];
-  return reviewers.slice(0, 3).map((name, i) => `
-    <div style="padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-        <span style="font-size:0.8rem;font-weight:600;font-family:var(--font-ui);">@${name}</span>
-        <div class="stars" style="font-size:0.7rem;">${starsHTML(p.rating - (i * 0.1))}</div>
-      </div>
-      <p style="font-size:0.78rem;color:var(--text-secondary);">
-        ${['Incredible detail and optimized geometry. Saved hours of modeling time.',
-           'Perfect for my arch-viz project. Great textures and clean topology.',
-           'Very impressed with the file organisation and documentation.'][i]}
-      </p>
-    </div>
-  `).join('');
+  setHTML('#viewer-reviews', '<p class="preview-notice">Customer reviews are not available yet.</p>');
 }
 
 function initThreeViewer(product) {
@@ -973,25 +928,15 @@ function renderCheckoutStep(step) {
   // Populate order summary in step 2
   if (step === 2) {
     const subtotal = cartSubtotalUSD();
-    const discount = state.promoCode
-      ? (state.promoCode.type === 'pct' ? subtotal * state.promoCode.value / 100 : Math.min(subtotal, state.promoCode.value))
-      : 0;
-    const discounted = subtotal - discount;
-    const fee   = discounted * PLATFORM_FEE_PCT;
-    const total = discounted + fee;
 
     setHTML('#checkout-summary-items', state.cart.map(i => `
       <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:var(--text-secondary);">
         <span>${escapeHTML(i.product.name)} (${escapeHTML(i.format)}) ×${i.qty}</span>
         <span>${fmt(i.product.price * i.qty)}</span>
       </div>
-    `).join('') + (discount > 0 ? `
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:var(--success);">
-        <span>Promo discount</span><span>−${fmt(discount)}</span>
-      </div>
-    ` : ''));
+    `).join(''));
 
-    setHTML('#checkout-total', fmt(total));
+    setHTML('#checkout-total', fmt(subtotal));
   }
 }
 
@@ -1049,7 +994,7 @@ function switchDashboardSection(section) {
 function switchDashboardRole(role) {
   state.dashboardRole = role;
 
-  const roleLabels = { buyer: 'Buyer Dashboard', creator: 'Creator Studio', admin: 'Admin Panel' };
+  const roleLabels = { buyer: 'Buyer preview', creator: 'Creator tools preview' };
   setHTML('#dashboard-role-label', roleLabels[role] || 'Dashboard');
 
   const buyerNav   = $('#buyer-nav');
@@ -1144,7 +1089,7 @@ function renderDashboard() {
 
     // Purchases table
     if (state.purchases.length === 0) {
-      setHTML('#purchases-table-wrap', '<p style="color:var(--text-muted);font-size:0.875rem;">No purchases yet. Browse assets to get started.</p>');
+      setHTML('#purchases-table-wrap', '<p class="preview-notice">Purchase history is not connected in this preview.</p>');
     } else {
       setHTML('#purchases-table-wrap', `
         <table class="data-table">
@@ -1166,7 +1111,7 @@ function renderDashboard() {
 
     // Downloads
     setHTML('#downloads-list', state.purchases.length === 0
-      ? '<p style="color:var(--text-muted);font-size:0.875rem;">No downloads yet.</p>'
+      ? '<p class="preview-notice">Purchases and downloads are not connected yet.</p>'
       : state.purchases.flatMap(o => o.items).map(item => `
           <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:0.5rem;">
             <div style="display:flex;align-items:center;gap:0.75rem;">
@@ -1192,7 +1137,7 @@ function renderDashboard() {
 
     // Licenses
     setHTML('#licenses-list', state.purchases.length === 0
-      ? '<p style="color:var(--text-muted);font-size:0.875rem;">No licenses yet.</p>'
+      ? '<p class="preview-notice">License records will appear here when checkout is connected.</p>'
       : state.purchases.flatMap(o => o.items).map(item => `
           <div style="padding:0.75rem;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:0.5rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -1209,77 +1154,11 @@ function renderDashboard() {
     );
 
   } else if (role === 'creator') {
-    // Creator stats (simulated)
-    setHTML('#creator-stats', [
-      { label: 'Total Revenue',   value: fmt(14820) },
-      { label: 'Assets Listed',   value: '18' },
-      { label: 'Total Downloads', value: '4,320' },
-      { label: 'Avg Rating',      value: '4.8 ★' },
-    ].map(s => `
-      <div class="stat-card">
-        <div class="stat-card-label">${s.label}</div>
-        <div class="stat-card-value" style="font-size:1.4rem">${s.value}</div>
-      </div>
-    `).join(''));
-
-    // Analytics chart (CSS bar chart)
-    const months = ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
-    const sales   = [890, 1240, 980, 1650, 1320, 1890];
-    const maxSale = Math.max(...sales);
-    setHTML('#analytics-chart-wrap', `
-      <p style="font-size:0.8rem;font-weight:600;font-family:var(--font-ui);color:var(--text-muted);margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:0.08em;">Monthly Revenue (USD)</p>
-      <div style="display:flex;align-items:flex-end;gap:1rem;height:120px;">
-        ${months.map((m, i) => `
-          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <div style="font-size:0.7rem;color:var(--text-muted)">${fmt(sales[i]).replace('.00','')}</div>
-            <div style="width:100%;background:linear-gradient(180deg,var(--blue-vivid),var(--blue-dim));border-radius:4px 4px 0 0;
-                        height:${(sales[i]/maxSale)*100}px;box-shadow:0 0 8px var(--blue-glow);transition:height 0.5s ease;"></div>
-            <div style="font-size:0.72rem;color:var(--text-muted)">${m}</div>
-          </div>
-        `).join('')}
-      </div>
-    `);
-
-    // My Products table
-    const creatorProducts = allProducts().slice(0, 5);
-    setHTML('#my-products-table', `
-      <table class="data-table">
-        <thead><tr><th>Asset</th><th>Category</th><th>Price</th><th>Downloads</th><th>Rating</th><th>Status</th></tr></thead>
-        <tbody>${creatorProducts.map(p => `
-          <tr>
-            <td style="font-weight:600">${escapeHTML(p.name)}</td>
-            <td><span class="badge badge-violet">${p.category}</span></td>
-            <td style="color:var(--blue-vivid);font-weight:700">${fmt(p.price)}</td>
-            <td>${p.downloads.toLocaleString()}</td>
-            <td>${p.rating} ★</td>
-            <td><span class="badge badge-green">Live</span></td>
-          </tr>
-        `).join('')}</tbody>
-      </table>
-    `);
-
-    // Earnings
-    setHTML('#earnings-stats', [
-      { label: 'Pending Payout',  value: fmt(2340) },
-      { label: 'Total Earned',    value: fmt(14820) },
-      { label: 'Commission Rate', value: '80%' },
-    ].map(s => `
-      <div class="stat-card">
-        <div class="stat-card-label">${s.label}</div>
-        <div class="stat-card-value" style="font-size:1.4rem">${s.value}</div>
-      </div>
-    `).join(''));
-
-    setHTML('#payouts-table', `
-      <table class="data-table">
-        <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>2026-08-01</td><td style="color:var(--success)">+${fmt(1840)}</td><td>Bank Transfer</td><td><span class="badge badge-green">Paid</span></td></tr>
-          <tr><td>2026-07-01</td><td style="color:var(--success)">+${fmt(2100)}</td><td>Bank Transfer</td><td><span class="badge badge-green">Paid</span></td></tr>
-          <tr><td>2026-06-01</td><td style="color:var(--success)">+${fmt(980)}</td><td>Bank Transfer</td><td><span class="badge badge-green">Paid</span></td></tr>
-        </tbody>
-      </table>
-    `);
+    setHTML('#creator-stats', '<p class="preview-notice">Creator analytics are not connected yet.</p>');
+    setHTML('#analytics-chart-wrap', '<p class="preview-notice">Sales data will appear here after creator accounts and checkout are connected.</p>');
+    setHTML('#my-products-table', '<p class="preview-notice">Your uploaded models will appear here when creator accounts are connected.</p>');
+    setHTML('#earnings-stats', '<p class="preview-notice">Earnings and payouts are not configured yet.</p>');
+    setHTML('#payouts-table', '<p class="preview-notice">Payout history is not available in this preview.</p>');
 
   } else if (role === 'admin') {
     // Admin stats
@@ -1336,21 +1215,6 @@ function renderDashboard() {
     btn.addEventListener('click', e => { e.stopPropagation(); toggleWishlist(btn.dataset.id); });
   });
 }
-
-/* ─── CDN Download Simulation ───────────────────────────────────────── */
-function simulateCDNDownload(name, format, size) {
-  toast(`⬇ Starting CDN download: ${name} ${format}`, 'download');
-
-  setTimeout(() => {
-    const anchor = document.createElement('a');
-    anchor.href = '#';
-    anchor.download = `${name.replace(/\s+/g,'_')}${format}`;
-    anchor.click();
-    toast(`✓ ${name} downloaded via edge CDN`, 'success');
-  }, 1200);
-}
-
-window.simulateCDNDownload = simulateCDNDownload;
 
 /* ──────────────────────────────────────────────────────────────────── */
 /*  EVENT LISTENERS — Bootstrap                                          */
@@ -1425,31 +1289,7 @@ function initEventListeners() {
   $('#cart-close').addEventListener('click', closeCart);
   $('#cart-overlay').addEventListener('click', closeCart);
 
-  // ── Promo code ──
-  $('#promo-apply').addEventListener('click', () => {
-    const code = $('#promo-input').value.trim().toUpperCase();
-    const msgEl = $('#promo-msg');
-
-    if (PROMO_CODES[code]) {
-      state.promoCode = PROMO_CODES[code];
-      $('#promo-input').classList.add('applied');
-      show(msgEl);
-      msgEl.classList.remove('error');
-      msgEl.textContent = `✓ ${PROMO_CODES[code].label} applied!`;
-      renderCart();
-      toast(`Promo code applied: ${PROMO_CODES[code].label}`, 'success');
-    } else {
-      state.promoCode = null;
-      $('#promo-input').classList.remove('applied');
-      show(msgEl);
-      msgEl.classList.add('error');
-      msgEl.textContent = '✗ Invalid promo code.';
-      renderCart();
-    }
-  });
-
   // ── Checkout open / close ──
-  $('#checkout-btn').addEventListener('click', openCheckout);
   $('#checkout-close').addEventListener('click', closeCheckout);
 
   // ── Step 1 → 2 ──
@@ -1501,10 +1341,6 @@ function initEventListeners() {
 
   $('#role-switcher').addEventListener('change', e => {
     switchDashboardRole(e.target.value);
-  });
-
-  $('#request-payout-btn')?.addEventListener('click', () => {
-    toast('Payout request submitted. Processing within 3 business days.', 'success');
   });
 
   // ── Viewer open/close ──
@@ -1622,45 +1458,7 @@ function init() {
   renderCart();
   initEventListeners();
 
-  // Seed a demo purchase for showcase
-  state.purchases.push({
-    orderId: 'SSJ-DEMO2026-SAMPLE',
-    date: '2026-09-01',
-    items: [{ product: PRODUCTS[0], qty: 1, format: PRODUCTS[0].formats[0] }],
-    total: PRODUCTS[0].price,
-    status: 'Completed',
-    email: 'demo@ssjewellery.com',
-  });
-
-  // Animate hero stats counter
-  animateCounters();
-
   console.log('%c SS JEWELLERY CREATORS ', 'background:#0ea5ff;color:#000;font-weight:700;padding:4px 12px;border-radius:4px;', '— 3D Asset Marketplace Loaded');
-}
-
-function animateCounters() {
-  // Simple number counter animation
-  const counters = [
-    { el: '#stat-assets', target: 50000, suffix: 'K+', divisor: 1000 },
-    { el: '#stat-creators', target: 8200, suffix: '+', divisor: 1 },
-    { el: '#stat-downloads', target: 2100000, suffix: 'M+', divisor: 1000000 },
-  ];
-
-  counters.forEach(({ el, target, suffix, divisor }) => {
-    const element = $(el);
-    if (!element) return;
-    let current = 0;
-    const increment = target / 60;
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        current = target;
-        clearInterval(timer);
-      }
-      const display = divisor > 1 ? (current / divisor).toFixed(1).replace('.0','') : Math.floor(current).toLocaleString();
-      element.textContent = display + suffix;
-    }, 30);
-  });
 }
 
 /* ──────────────────────────────────────────────────────────────────────

@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SS Jewellery Creators — 3D Jewellery Models</title>
   <meta name="description" content="Explore 3D jewellery models including rings, necklaces, earrings, pendants, and bracelets. Preview and browse digital design assets from SS Jewellery Creators." />
+  <link rel="canonical" href="https://surajkarar00-spec.github.io/ss-jewellery-creators/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="SS Jewellery Creators — 3D Jewellery Models" />
+  <meta property="og:description" content="Browse digital 3D jewellery models for design, visualization, and 3D printing." />
+  <meta property="og:url" content="https://surajkarar00-spec.github.io/ss-jewellery-creators/" />
   <meta name="theme-color" content="#090c12" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="SS Jewellery" />
@@ -14,13 +19,11 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <!-- Styles -->
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Three.js for 3D viewer -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous" defer></script>
 </head>
 <body>
 
@@ -29,7 +32,7 @@
   <div class="container nav-inner">
 
     <!-- Logo -->
-    <a href="#" class="nav-logo" aria-label="SS Jewellery Creators home">
+    <a href="#hero" class="nav-logo" aria-label="SS Jewellery Creators home">
       <div class="nav-logo-mark" aria-hidden="true">SS</div>
       <div class="nav-logo-text">
         SS Jewellery Creators
@@ -83,11 +86,11 @@
       </button>
 
       <!-- Dashboard -->
-      <button class="btn btn-primary btn-sm" id="dashboard-btn" aria-label="Open dashboard">
+      <button class="btn btn-primary btn-sm" id="dashboard-btn" aria-label="Open account preview">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
         </svg>
-        Account
+        Buyer preview
       </button>
     </div>
 
@@ -158,9 +161,7 @@
           <option value="featured">Featured</option>
           <option value="price-asc">Price: Low → High</option>
           <option value="price-desc">Price: High → Low</option>
-          <option value="rating">Top Rated</option>
           <option value="newest">Newest</option>
-          <option value="popular">Most Downloaded</option>
         </select>
       </div>
 
@@ -214,8 +215,9 @@
   <div class="viewer-panel">
 
     <!-- Canvas side -->
-    <div class="viewer-canvas-area" role="img" aria-label="3D model preview">
-      <canvas id="product-viewer-canvas"></canvas>
+    <div class="viewer-canvas-area">
+      <canvas id="product-viewer-canvas" aria-label="Interactive preview of the selected jewellery model"></canvas>
+      <p class="viewer-load-status hidden" id="viewer-load-status" role="status" aria-live="polite"></p>
 
       <div class="viewer-controls" role="toolbar" aria-label="3D viewer controls">
         <button class="btn btn-ghost btn-sm" id="viewer-rotate-btn" title="Auto-rotate">
@@ -299,16 +301,6 @@
     </button>
   </div>
 
-  <!-- Free Shipping Progress -->
-  <div class="cart-free-shipping">
-    <p class="shipping-progress-label">
-      <span id="shipping-msg">Add <strong id="shipping-remaining">$500.00</strong> more for free global courier shipping!</span>
-    </p>
-    <div class="shipping-progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="500" aria-label="Free shipping progress">
-      <div class="shipping-progress-fill" id="shipping-fill" style="width:0%"></div>
-    </div>
-  </div>
-
   <!-- Cart Items -->
   <div class="cart-items" id="cart-items" role="list">
     <div class="cart-empty" id="cart-empty">
@@ -322,36 +314,18 @@
 
   <!-- Cart Footer -->
   <div class="cart-footer">
-    <!-- Promo Code -->
-    <div>
-      <div class="promo-row">
-        <input type="text" class="promo-input" id="promo-input" placeholder="PROMO CODE" maxlength="20" aria-label="Promo code" />
-        <button class="btn btn-outline btn-sm" id="promo-apply">Apply</button>
-      </div>
-      <p class="promo-msg hidden" id="promo-msg"></p>
-    </div>
+    <p class="preview-notice" id="cart-checkout-note">
+      Digital downloads and secure checkout are not connected yet. Prices are estimates; no payment is collected.
+    </p>
 
-    <!-- Totals -->
     <div class="cart-totals">
-      <div class="cart-total-row">
-        <span class="label">Subtotal</span>
-        <span class="value" id="cart-subtotal">$0.00</span>
-      </div>
-      <div class="cart-total-row" id="discount-row" style="display:none">
-        <span class="label" style="color:var(--success);">Discount</span>
-        <span class="value" style="color:var(--success);" id="cart-discount">-$0.00</span>
-      </div>
-      <div class="cart-total-row">
-        <span class="label">Platform Fee</span>
-        <span class="value" id="cart-fee">$0.00</span>
-      </div>
       <div class="cart-total-row primary">
-        <span class="label">Total</span>
+        <span class="label">Estimated total</span>
         <span class="value" id="cart-total">$0.00</span>
       </div>
     </div>
 
-    <button class="btn btn-primary btn-full btn-lg" id="checkout-btn" disabled>
+    <button class="btn btn-primary btn-full btn-lg" id="checkout-btn" disabled aria-describedby="cart-checkout-note" title="Checkout is not available yet">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
       Checkout
     </button>
@@ -595,7 +569,7 @@
 
     <!-- Sidebar Nav -->
     <nav class="dashboard-sidebar" aria-label="Dashboard navigation">
-      <div class="dashboard-role-badge" id="dashboard-role-label">Buyer Dashboard</div>
+      <div class="dashboard-role-badge" id="dashboard-role-label">Buyer preview</div>
 
       <!-- Buyer nav items -->
       <div id="buyer-nav">
@@ -621,9 +595,8 @@
       <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);">
         <p style="font-size:0.68rem;color:var(--text-muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.08em;">Switch View</p>
         <select class="filter-select" id="role-switcher" style="width:100%;height:36px;" aria-label="Switch dashboard role">
-          <option value="buyer">Buyer</option>
-          <option value="creator">Creator</option>
-          <option value="admin">Admin</option>
+          <option value="buyer">Buyer preview</option>
+          <option value="creator">Creator tools preview</option>
         </select>
       </div>
 
@@ -636,7 +609,7 @@
 
     <!-- Dashboard Content -->
     <div class="dashboard-content" id="dashboard-content">
-      <h2 style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;margin-bottom:2rem;" id="dashboard-title">My Dashboard</h2>
+      <h2 style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;margin-bottom:2rem;" id="dashboard-title">Account preview</h2>
 
       <!-- Purchases -->
       <div class="dashboard-section active" id="section-purchases">
@@ -687,8 +660,8 @@
         <div class="stat-cards" id="earnings-stats"></div>
         <h3 style="font-family:var(--font-ui);font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:1rem;">Payout History</h3>
         <div id="payouts-table"></div>
-        <button class="btn btn-primary" style="margin-top:1.5rem;" id="request-payout-btn">
-          Request Payout
+        <button class="btn btn-primary" style="margin-top:1.5rem;" id="request-payout-btn" disabled title="Payouts are not configured yet">
+          Payouts not configured
         </button>
       </div>
 
@@ -792,7 +765,7 @@
             <div class="contact-card-label">Headquarters / Studio</div>
             <div class="contact-card-value">West Bengal, Howrah</div>
             <div class="contact-card-link" style="color:var(--text-muted);">
-              <span>India · Global Delivery</span>
+              <span>India · Online marketplace</span>
             </div>
           </div>
         </div>
@@ -801,7 +774,7 @@
         <div class="contact-form-box">
           <div class="contact-form-header">
             <h4 class="contact-form-title">Send Direct Message to Mr. Surya</h4>
-            <p class="contact-form-subtitle">Have a custom asset request or enterprise order? Fill out the brief form below.</p>
+            <p class="contact-form-subtitle">Have a custom jewellery model or CAD-design question? Send a message below.</p>
           </div>
           <form id="direct-inquiry-form" onsubmit="event.preventDefault(); window.submitInquiry();">
             <div class="form-row">
@@ -838,7 +811,7 @@
 
       <!-- Brand & Owner Info -->
       <div>
-        <a href="#" class="nav-logo" style="margin-bottom:0.75rem;">
+        <a href="#hero" class="nav-logo" style="margin-bottom:0.75rem;">
           <div class="nav-logo-mark">SS</div>
           <div class="nav-logo-text">
             SS Jewellery Creators
@@ -880,12 +853,8 @@
       <div>
         <h3 class="footer-col-title">For Creators</h3>
         <ul class="footer-links" role="list">
-          <li><a class="footer-link" href="#founder-contact-section">Upload &amp; Sell</a></li>
-          <li><a class="footer-link" href="#founder-contact-section">Creator Guidelines</a></li>
-          <li><a class="footer-link" href="#founder-contact-section">Pricing &amp; Commission</a></li>
-          <li><a class="footer-link" href="#founder-contact-section">Creator Analytics</a></li>
-          <li><a class="footer-link" href="#founder-contact-section">Payout System</a></li>
-          <li><a class="footer-link" href="#founder-contact-section">Creator Forum</a></li>
+          <li><a class="footer-link" href="SUPABASE_SETUP.md">Upload and storage setup</a></li>
+          <li><a class="footer-link" href="mailto:sscsurya8612@gmail.com">Contact about creator tools</a></li>
         </ul>
       </div>
 
@@ -921,11 +890,7 @@
 
     <div class="footer-bottom">
       <p>© 2026 SS Jewellery Creators · Owned by MR SURYA. All rights reserved.</p>
-      <div style="display:flex;gap:1.5rem;">
-        <a class="footer-link" href="#">Privacy Policy</a>
-        <a class="footer-link" href="#">Terms of Service</a>
-        <a class="footer-link" href="#">License Guide</a>
-      </div>
+      <p class="footer-policy-note">Privacy, terms, and license information will be published here when available.</p>
       <p style="display:flex;align-items:center;gap:6px;">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         Payment processing is not configured yet

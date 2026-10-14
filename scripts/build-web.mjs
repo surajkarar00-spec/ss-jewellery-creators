@@ -10,6 +10,8 @@ const files = [
   'app.webmanifest',
   'app-icon.svg',
   'service-worker.js',
+  'SUPABASE_SETUP.md',
+  'supabase-setup.sql',
 ];
 
 await rm('www', { recursive: true, force: true });
