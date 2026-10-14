@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SS Jewellery Creators — 3D Jewellery Models</title>
   <meta name="description" content="Explore 3D jewellery models including rings, necklaces, earrings, pendants, and bracelets. Preview and browse digital design assets from SS Jewellery Creators." />
+  <meta name="theme-color" content="#090c12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="SS Jewellery" />
+  <link rel="manifest" href="app.webmanifest" />
+  <link rel="icon" href="app-icon.svg" type="image/svg+xml" />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -950,5 +955,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="creator-upload.js"></script>
+<script>
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+        console.error('Could not register the offline app cache.', error);
+      });
+    });
+  }
+</script>
 </body>
 </html>

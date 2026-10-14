@@ -1,0 +1,9 @@
+{
+  "appId": "com.ssjewellerycreators.marketplace",
+  "appName": "SS Jewellery Creators",
+  "webDir": "www",
+  "backgroundColor": "#090c12",
+  "ios": {
+    "contentInset": "automatic"
+  }
+}
